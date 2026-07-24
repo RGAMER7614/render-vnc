@@ -5,14 +5,16 @@ async function runBot() {
         console.log("Launching browser with GUI (VNC mode)...");
         
         const browser = await puppeteer.launch({
-            headless: false, // এখন আর ব্যাকগ্রাউন্ডে নয়, স্ক্রিনে দেখা যাবে
-            executablePath: '/usr/bin/chromium', // লিনাক্সের ডিফল্ট ক্রোমিয়াম ব্যবহার করবে
-            defaultViewport: { width: 1024, height: 768 },
+            headless: false,
+            executablePath: '/usr/bin/chromium',
+            defaultViewport: { width: 800, height: 600 },
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
                 '--disable-dev-shm-usage',
-                '--start-maximized'
+                '--disable-accelerated-2d-canvas',
+                '--no-zygote',
+                '--disable-gpu'
             ]
         });
 
