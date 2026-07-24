@@ -1,43 +1,31 @@
 import puppeteer from 'puppeteer';
-import express from 'express';
 
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Render-এর স্লিপ মোড এড়ানোর জন্য ডামি রুট
-app.get('/', (req, res) => {
-    res.send('Bot is running and active 24/7!');
-});
-
-app.listen(PORT, () => {
-    console.log(`Web server is running on port ${PORT}`);
-});
-
-// Puppeteer AFK Bot Logic
 async function runBot() {
     try {
-        console.log("Launching browser...");
+        console.log("Launching browser with GUI (VNC mode)...");
+        
         const browser = await puppeteer.launch({
-            headless: true,
+            headless: false, // এখন আর ব্যাকগ্রাউন্ডে নয়, স্ক্রিনে দেখা যাবে
+            executablePath: '/usr/bin/chromium', // লিনাক্সের ডিফল্ট ক্রোমিয়াম ব্যবহার করবে
+            defaultViewport: { width: 1024, height: 768 },
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
                 '--disable-dev-shm-usage',
-                '--disable-accelerated-2d-canvas',
-                '--disable-gpu'
+                '--start-maximized'
             ]
         });
 
         const page = await browser.newPage();
         
-        // আপনার কাঙ্ক্ষিত ওয়েবসাইট বা লিংক এখানে বসাবেন
+        // আপনার কাঙ্ক্ষিত ওয়েবসাইট বা গেমের লিংক এখানে বসাবেন
         const targetUrl = 'https://example.com'; 
         console.log(`Navigating to ${targetUrl}...`);
         
         await page.goto(targetUrl, { waitUntil: 'networkidle2' });
-        console.log("Page loaded successfully! Staying AFK...");
+        console.log("Page loaded successfully! You can see it on your Render URL.");
 
-        // সংযোগ সচল রাখার জন্য ইনফিনিট লুপ বা রিফ্রেশ মেকানিজম
+        // সংযোগ সচল রাখার জন্য প্রতি ৫ মিনিট পর পর রিফ্রেশ
         setInterval(async () => {
             try {
                 console.log("Refreshing page to stay active...");
@@ -45,11 +33,10 @@ async function runBot() {
             } catch (err) {
                 console.error("Error during reload:", err);
             }
-        }, 300000); // প্রতি ৫ মিনিট পর পর পেজ রিলোড হবে
+        }, 300000); 
 
     } catch (error) {
         console.error("An error occurred in Puppeteer:", error);
-        // ক্র্যাশ করলে ৫ সেকেন্ড পর আবার ট্রাই করবে
         setTimeout(runBot, 5000);
     }
 }
