@@ -1,11 +1,10 @@
 FROM node:18-slim
 
-# Install Chrome dependencies and unzip
+# Install Chromium, X11 (Display), VNC, noVNC, and a Window Manager (fluxbox)
 RUN apt-get update && apt-get install -y \
-    libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 \
-    libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 \
-    libgbm1 libasound2 libpango-1.0-0 libcairo2 fonts-liberation \
-    unzip \
+    chromium \
+    xvfb x11vnc fluxbox \
+    novnc websockify \
     --no-install-recommends && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -15,4 +14,15 @@ RUN npm install --unsafe-perm
 
 COPY . .
 
-CMD ["node", "index.js"]
+# Create a startup script to launch Display, VNC, noVNC and Node.js
+RUN echo '#!/bin/bash\n\
+export DISPLAY=:99\n\
+Xvfb :99 -screen 0 1024x768x16 &\n\
+sleep 2\n\
+fluxbox &\n\
+x11vnc -display :99 -nopw -forever -shared -bg\n\
+websockify --web /usr/share/novnc/ 3000 localhost:5900 &\n\
+node index.js\n\
+' > start.sh && chmod +x start.sh
+
+CMD ["./start.sh"]
