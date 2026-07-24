@@ -1,46 +1,65 @@
 import puppeteer from 'puppeteer';
+import express from 'express';
 
-async function runBot() {
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Koyeb/Render যেন স্লিপ না করায়, সেজন্য সার্ভার চালু রাখা
+app.get('/', (req, res) => {
+    res.send('Atyro AFK Bot is running 24/7 in background!');
+});
+
+app.listen(PORT, () => {
+    console.log(`Web server running on port ${PORT}`);
+});
+
+async function startAFKBot() {
     try {
-        console.log("Launching browser with GUI (VNC mode)...");
-        
+        console.log("Launching background browser...");
         const browser = await puppeteer.launch({
-            headless: false,
-            executablePath: '/usr/bin/chromium',
-            defaultViewport: { width: 800, height: 600 },
+            headless: true, // ব্যাকগ্রাউন্ডে চলবে, কোনো ল্যাগ করবে না
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
                 '--disable-dev-shm-usage',
                 '--disable-accelerated-2d-canvas',
-                '--no-zygote',
                 '--disable-gpu'
             ]
         });
 
         const page = await browser.newPage();
         
-        // আপনার কাঙ্ক্ষিত ওয়েবসাইট বা গেমের লিংক এখানে বসাবেন
-        const targetUrl = 'https://example.com'; 
-        console.log(`Navigating to ${targetUrl}...`);
-        
-        await page.goto(targetUrl, { waitUntil: 'networkidle2' });
-        console.log("Page loaded successfully! You can see it on your Render URL.");
+        // ভিউপোর্ট সেট করা
+        await page.setViewport({ width: 1280, height: 720 });
 
-        // সংযোগ সচল রাখার জন্য প্রতি ৫ মিনিট পর পর রিফ্রেশ
+        console.log("Navigating to Atyro login/dashboard...");
+        // তোমার Atyro ড্যাশবোর্ড বা লগইন লিংক এখানে দিবা
+        await page.goto('https://atryo.com/login', { waitUntil: 'networkidle2' });
+
+        // যদি অটো লগইন করতে চাও (ইমেল ও পাসওয়ার্ড বসিয়ে দিতে পারো)
+        /*
+        await page.type('#email', 'YOUR_EMAIL_HERE');
+        await page.type('#password', 'YOUR_PASSWORD_HERE');
+        await page.click('button[type="submit"]');
+        await page.waitForNavigation();
+        */
+
+        console.log("Successfully reached Atyro! Maintaining AFK session...");
+
+        // পেজ সচল বা কানেক্টেড রাখার জন্য প্রতি ৪ মিনিট পর পর রিফ্রেশ বা পিং করা
         setInterval(async () => {
             try {
-                console.log("Refreshing page to stay active...");
+                console.log("Refreshing AFK session to stay active...");
                 await page.reload({ waitUntil: 'networkidle2' });
             } catch (err) {
-                console.error("Error during reload:", err);
+                console.error("Reload error:", err);
             }
-        }, 300000); 
+        }, 240000); // ৪ মিনিট
 
     } catch (error) {
-        console.error("An error occurred in Puppeteer:", error);
-        setTimeout(runBot, 5000);
+        console.error("Bot crashed, restarting in 10 seconds...", error);
+        setTimeout(startAFKBot, 10000);
     }
 }
 
-runBot();
+startAFKBot();
