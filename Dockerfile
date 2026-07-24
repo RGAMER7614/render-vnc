@@ -14,10 +14,10 @@ RUN npm install --unsafe-perm
 
 COPY . .
 
-# Create a startup script to launch Display, VNC, noVNC and Node.js
+# Startup script to launch Display, VNC, noVNC and Node.js with optimized resolution
 RUN echo '#!/bin/bash\n\
 export DISPLAY=:99\n\
-Xvfb :99 -screen 0 1024x768x16 &\n\
+Xvfb :99 -screen 0 800x600x16 &\n\
 sleep 2\n\
 fluxbox &\n\
 x11vnc -display :99 -nopw -forever -shared -bg\n\
